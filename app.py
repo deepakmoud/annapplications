@@ -107,64 +107,7 @@ def aboutusnew():
 def ann():
     return render_template('/ann/ann.html')
 
-#------------------------------Signature Verificationn-------------------------------------------
 
-def model_predict(file_path, model):
-    img = image.load_img(file_path, target_size=(128, 128))
-
-    # Preprocessing the image
-    x = image.img_to_array(img)
-    # x = np.true_divide(x, 255)
-    x = np.expand_dims(x, axis=0)
-
-    # Be careful how your trained model deals with the input
-    # otherwise, it won't make correct prediction!
-    x = preprocess_input(x, mode='caffe')
-    preds = model.predict(x)
-    return preds
-
-@app.route('/ann/signatureverification/signatureverification')
-def signatureverification():
-    return render_template('/ann/signatureverification/signatureverification.html')
-
-
-@app.route('/ann/signatureverification/signatureverification',  methods=['GET', 'POST'])
-def signatureverification1():
-   
-    if request.method == 'POST':
-        my_dataset = request.files['my_dataset']
-        my_model_name = request.form['name_of_model']
-        
-        dataset_path = os.path.join(pathfordataset, secure_filename(my_dataset.filename))
-        my_dataset.save(dataset_path)
-        print(my_dataset)
-        get_dastaset = os.path.join(app.config['DFPr'],secure_filename(my_dataset.filename))
-        print(get_dastaset)
-        input=secure_filename(my_dataset.filename)
-        extension= input.split(".")
-        extension=extension[1]
-        print(extension)
-        model = load_model("static/data-preprocess/model/model_vgg19.h5")
-        # Make prediction
-        preds = model_predict(get_dastaset, model)
-
-        # Process your result for human
-        # pred_class = preds.argmax(axis=-1)            # Simple argmax
-        if(preds> 0.5):
-            result= 'Genuine'
-        elif(preds< 0.5):
-            result='Forged'
-        plt.plot(get_dastaset)
-
-        
-        fig = plt.gcf()
-        img_name1 = 'vgg19'
-        fig.savefig('static/kmeans/plot/vgg19.png', dpi=1500)
-        #elbow_plot = os.path.join(app.config['elbowplot'], '%s.png' % img_name1)
-        vgg19_plot = os.path.join('kmeans\plot', '%s.png' % img_name1)
-        plt.clf()
-
-        return render_template('/ann/signatureverification/signatureverificationoutput.html', model_name=my_model_name,my_dataset=my_dataset, pred=result, visualize=input )
 
 #-----------------------Digit Recognition---------------------------------------------
 model_digit = load_model("static/data-preprocess/model/MNISTANN.h5")
@@ -269,54 +212,6 @@ def cat1():
         return render_template('/ann/cat/catoutput.html', model_name=my_model_name,my_dataset=input_image, pred=preds, visualize=input )
 
 
-#-------------Signature recognition-----------------------------------------------
-model_signaturerecognition = load_model("static/data-preprocess/model/signatureRecognition_VGG16folder_model.h5")
-SIGNATURE_CLASSES = ['001', '002', '003','004','006','009','012','013','014','015','016','017','018','019','020','021','022','023','024','025','026','027','028','029','030','031','032','033','034','035','036','037','038','039','040','041','042','043','044','045','046','047','048','049','050','051','052','053','054','055','056','057','058','059','060','061','062','063','064','065','066','067','068','069']
-def import_and_predict_recognition(image_data, model):
-  #img = image.load_img(image_data, target_size=(224, 224))
-  #image = image.img_to_array(img)
-  #img_reshap= np.expand_dims(image, axis=0)
-  #img_reshap = preprocess_input(img_reshap)
-  size=(224, 224)
-  image=ImageOps.fit(image_data, size, Image.ANTIALIAS)
-  img=np.asarray(image)
-  img_reshape=np.expand_dims(img, axis=1)
-  img_reshape=img[np.newaxis,...]
-  block4_pool_features = model.predict(img_reshape)
-  label_index=block4_pool_features.argmax()
-  print(block4_pool_features)
-  result=SIGNATURE_CLASSES[label_index]
-  return result
-
-
-@app.route('/ann/signaturerecognition/signaturerecognition')
-def signaturerecognition():
-    return render_template('/ann/signaturerecognition/signaturerecognition.html')
-
-
-@app.route('/ann/signaturerecognition/signaturerecognition',  methods=['GET', 'POST'])
-def signaturerecognition1():
-   
-    if request.method == 'POST':
-        input_image = request.files['input_image']
-        
-        my_model_name = request.form['name_of_model']
-        
-        dataset_path = os.path.join(pathfordataset, secure_filename(input_image.filename))
-        input_image.save(dataset_path)
-        
-        get_dastaset = os.path.join(app.config['DFPr'],secure_filename( input_image .filename))
-        input=secure_filename(input_image.filename)
-        
-        image=Image.open(input_image)
-        #image=np.array(image)
-        
-        #image=np.array(input_image)
-        preds = import_and_predict_recognition(image, model_signaturerecognition)
-
-        
-
-        return render_template('/ann/signaturerecognition/signaturerecognitionoutput.html', model_name=my_model_name,my_dataset=input_image, pred=preds, visualize=input )
 
 #--------------------Animal Breed identification---------------------------------
 
